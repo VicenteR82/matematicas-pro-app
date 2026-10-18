@@ -81,6 +81,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   const [countryCode, setCountryCode] = useState('+595');
   const [studentPhoneNum, setStudentPhoneNum] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedModality, setSelectedModality] = useState<'online' | 'presencial'>('online');
 
   // Modals state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -118,6 +119,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     const fullPhone = `${countryCode}${studentPhoneNum.replace(/[^\d]/g, '')}`;
     const randomCode = `MAT-${Math.floor(1000 + Math.random() * 9000)}`;
 
+    const platformName = teacher.preferredPlatform === 'teams' ? 'Microsoft Teams' : teacher.preferredPlatform === 'zoom' ? 'Zoom' : 'Google Meet';
+
     const newBooking: Booking = {
       id: `bk-${Date.now()}`,
       bookingCode: randomCode,
@@ -128,16 +131,19 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       subject: selectedSubject,
       packageId: selectedPackage.id,
       packageName: selectedPackage.name,
+      modality: selectedModality,
+      locationOrPlatform: selectedModality === 'online' ? platformName : (teacher.inPersonAddress || 'Aula del Profesor (Asunción)'),
+      inPersonAddress: selectedModality === 'presencial' ? teacher.inPersonAddress : undefined,
       date: selectedDate,
       timeSlot: selectedSlot,
       durationMinutes: selectedPackage.durationMinutes,
       amount: selectedPackage.price,
-      currency: teacher.currency,
+      currency: teacher.currencySymbol,
       status: method === 'bank_transfer' ? 'confirmed' : 'paid',
       paymentMethod: method,
       paymentReference: reference,
       notes: notes.trim(),
-      meetLink: teacher.meetLinkDefault,
+      meetLink: selectedModality === 'online' ? teacher.meetLinkDefault : undefined,
       createdAt: new Date().toISOString(),
       remindersSent: {
         confirmation: true,
@@ -200,13 +206,68 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
         {/* Step Container */}
         <div className="bg-slate-50/70 border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs">
           
-          {/* STEP 1: Select Subject and Package */}
+          {/* STEP 1: Select Modality, Subject and Package */}
           {currentStep === 1 && (
             <div className="space-y-8 animate-in fade-in duration-150">
+              
+              {/* Select Modality */}
+              <div>
+                <label className="block text-sm font-bold text-slate-900 mb-2">
+                  1. Elige la modalidad de tu clase
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedModality('online')}
+                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                      selectedModality === 'online'
+                        ? 'bg-white border-indigo-600 ring-2 ring-indigo-600/20 shadow-xs'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-xs text-indigo-950 flex items-center gap-1.5">
+                        <span>💻 Clase Online</span>
+                        <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded">
+                          {teacher.preferredPlatform === 'teams' ? 'Microsoft Teams' : teacher.preferredPlatform === 'zoom' ? 'Zoom' : 'Google Meet'}
+                        </span>
+                      </span>
+                      {selectedModality === 'online' && <Check className="w-4 h-4 text-indigo-600" />}
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Conéctate desde tu casa con pizarra interactiva y resolución en vivo.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedModality('presencial')}
+                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                      selectedModality === 'presencial'
+                        ? 'bg-white border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-xs text-emerald-950 flex items-center gap-1.5">
+                        <span>📍 Clase Presencial</span>
+                        <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded">
+                          En Aula / Domicilio
+                        </span>
+                      </span>
+                      {selectedModality === 'presencial' && <Check className="w-4 h-4 text-emerald-600" />}
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1 truncate">
+                      {teacher.inPersonAddress || 'Aula del profesor en Asunción'}
+                    </p>
+                  </button>
+                </div>
+              </div>
+
               {/* Select Subject */}
               <div>
                 <label className="block text-sm font-bold text-slate-900 mb-3">
-                  1. ¿Qué tema o nivel necesitas trabajar?
+                  2. ¿Qué tema o nivel necesitas trabajar?
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {ACADEMIC_SUBJECTS.map((sub) => {

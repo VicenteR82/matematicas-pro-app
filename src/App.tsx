@@ -125,6 +125,36 @@ export default function App() {
     handleScrollToSection('reservar');
   };
 
+  const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(false);
+  const [teacherPin, setTeacherPin] = useState(() => {
+    return localStorage.getItem('math_pro_teacher_pin') || '1234';
+  });
+
+  const handleOpenTeacherView = () => {
+    if (isTeacherAuthenticated) {
+      setCurrentView('teacher');
+    } else {
+      setShowPinModal(true);
+      setPinInput('');
+      setPinError(false);
+    }
+  };
+
+  const handleVerifyPin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pinInput === teacherPin) {
+      setIsTeacherAuthenticated(true);
+      setShowPinModal(false);
+      setCurrentView('teacher');
+      setPinError(false);
+    } else {
+      setPinError(true);
+    }
+  };
+
   const confirmationTemplate = templates.find(t => t.id === 'tpl-confirmation') || templates[0];
   const pendingBookingsCount = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length;
 
@@ -134,7 +164,13 @@ export default function App() {
       {/* Top Header */}
       <Header
         currentView={currentView}
-        onViewChange={setCurrentView}
+        onViewChange={(view) => {
+          if (view === 'teacher') {
+            handleOpenTeacherView();
+          } else {
+            setCurrentView('student');
+          }
+        }}
         onOpenDeploymentGuide={() => setIsDeploymentGuideOpen(true)}
         onScrollToSection={handleScrollToSection}
         pendingBookingsCount={pendingBookingsCount}
@@ -149,7 +185,7 @@ export default function App() {
               teacher={teacher}
               onStartBooking={() => handleScrollToSection('reservar')}
               onExploreFeatures={() => handleScrollToSection('recordatorios')}
-              onViewTeacherDashboard={() => setCurrentView('teacher')}
+              onViewTeacherDashboard={handleOpenTeacherView}
             />
 
             {/* Packages & Pricing Section */}
@@ -198,8 +234,70 @@ export default function App() {
       <Footer
         teacher={teacher}
         onOpenDeploymentGuide={() => setIsDeploymentGuideOpen(true)}
-        onSwitchView={setCurrentView}
+        onSwitchView={(view) => {
+          if (view === 'teacher') handleOpenTeacherView();
+          else setCurrentView('student');
+        }}
       />
+
+      {/* Teacher PIN Login Modal */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="text-center mb-5">
+              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">🔒</span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900">Acceso al Panel Docente</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Ingresa el PIN de seguridad de la profesora para ver ingresos, reservas y alumnos.
+              </p>
+            </div>
+
+            <form onSubmit={handleVerifyPin} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  maxLength={8}
+                  autoFocus
+                  value={pinInput}
+                  onChange={(e) => {
+                    setPinInput(e.target.value);
+                    setPinError(false);
+                  }}
+                  placeholder="PIN de acceso"
+                  className="w-full text-center tracking-widest text-lg font-mono py-2.5 px-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                />
+                {pinError ? (
+                  <p className="text-[11px] text-red-600 text-center mt-1.5 font-medium">
+                    PIN incorrecto. Intenta de nuevo.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-slate-400 text-center mt-1.5">
+                    PIN predeterminado: <strong className="text-slate-600">1234</strong>
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPinModal(false)}
+                  className="w-1/2 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors cursor-pointer"
+                >
+                  Ingresar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

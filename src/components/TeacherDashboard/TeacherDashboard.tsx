@@ -334,10 +334,21 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           )}
                         </td>
 
-                        {/* Subject */}
+                        {/* Subject & Modality */}
                         <td className="py-3.5 px-4">
                           <span className="font-semibold text-slate-800">{b.subject}</span>
                           <span className="block text-[11px] text-slate-500">{b.packageName}</span>
+                          <div className="mt-1">
+                            {b.modality === 'presencial' ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded">
+                                📍 Presencial
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-800 bg-indigo-50 px-1.5 py-0.2 rounded">
+                                💻 {b.locationOrPlatform || 'Teams / Online'}
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         {/* Date & Time */}
@@ -383,17 +394,26 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             <span>WhatsApp</span>
                           </button>
 
-                          {/* Join Google Meet Button */}
-                          <a
-                            href={b.meetLink || teacher.meetLinkDefault}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 text-indigo-800 hover:bg-indigo-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                            title="Abrir sala de Google Meet"
-                          >
-                            <Video className="w-3.5 h-3.5 text-indigo-600" />
-                            <span>Entrar a Clase</span>
-                          </a>
+                          {/* Join Class / View Location Button */}
+                          {b.modality === 'presencial' ? (
+                            <span 
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium cursor-help"
+                              title={b.inPersonAddress || teacher.inPersonAddress}
+                            >
+                              <span>📍 Presencial</span>
+                            </span>
+                          ) : (
+                            <a
+                              href={b.meetLink || teacher.meetLinkDefault}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 text-indigo-800 hover:bg-indigo-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                              title={`Abrir sala virtual (${teacher.preferredPlatform === 'teams' ? 'Microsoft Teams' : 'Google Meet'})`}
+                            >
+                              <Video className="w-3.5 h-3.5 text-indigo-600" />
+                              <span>{teacher.preferredPlatform === 'teams' ? 'Abrir Teams' : 'Entrar a Clase'}</span>
+                            </a>
+                          )}
                         </td>
 
                       </tr>

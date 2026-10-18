@@ -39,16 +39,25 @@ export function formatWhatsAppMessage(
     formattedDate = booking.date;
   }
 
+  // Modality & Meeting link or in-person address
+  const isPresencial = booking.modality === 'presencial';
+  const locationInfo = isPresencial
+    ? `📍 *Lugar del Encuentro Presencial:*\n${booking.inPersonAddress || 'Aula particular del profesor / a coordinar por este chat'}`
+    : `💻 *Enlace de la clase virtual (${booking.locationOrPlatform || 'Microsoft Teams'}):*\n${meetLink}`;
+
+  const modalityLabel = isPresencial ? 'Clase Presencial 📍' : `Clase Online (${booking.locationOrPlatform || 'Teams'}) 💻`;
+
   return templateContent
     .replace(/{student_name}/g, booking.studentName)
     .replace(/{subject}/g, booking.subject)
     .replace(/{package_name}/g, booking.packageName)
     .replace(/{date}/g, formattedDate)
     .replace(/{time_slot}/g, booking.timeSlot)
-    .replace(/{amount}/g, booking.amount.toString())
+    .replace(/{amount}/g, typeof booking.amount === 'number' ? booking.amount.toLocaleString('es-PY') : booking.amount)
     .replace(/{currency}/g, booking.currency)
     .replace(/{payment_status}/g, statusText)
-    .replace(/{meet_link}/g, meetLink)
+    .replace(/{meet_link}/g, locationInfo)
+    .replace(/{modality}/g, modalityLabel)
     .replace(/{booking_code}/g, booking.bookingCode);
 }
 

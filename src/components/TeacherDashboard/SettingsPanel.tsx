@@ -157,22 +157,81 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </div>
           </div>
 
+          {/* Plataforma Virtual y Presencial */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Plataforma de Videollamada
+              </label>
+              <select
+                value={formData.preferredPlatform || 'teams'}
+                onChange={(e) => handleTextChange('preferredPlatform', e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-medium"
+              >
+                <option value="teams">Microsoft Teams</option>
+                <option value="meet">Google Meet</option>
+                <option value="zoom">Zoom</option>
+                <option value="other">Otra sala personalizada</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Modalidades Disponibles
+              </label>
+              <div className="flex gap-2 pt-1 text-xs">
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.allowOnline ?? true}
+                    onChange={(e) => handleTextChange('allowOnline', e.target.checked)}
+                    className="text-indigo-600 rounded"
+                  />
+                  <span>Online</span>
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer ml-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.allowInPerson ?? true}
+                    onChange={(e) => handleTextChange('allowInPerson', e.target.checked)}
+                    className="text-indigo-600 rounded"
+                  />
+                  <span>Presencial</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              Enlace Predeterminado de Sala (Google Meet / Zoom)
+              Enlace de la Sala Virtual ({formData.preferredPlatform === 'teams' ? 'Microsoft Teams' : formData.preferredPlatform === 'zoom' ? 'Zoom' : 'Google Meet'})
             </label>
             <div className="relative">
               <input
                 type="url"
                 value={formData.meetLinkDefault}
                 onChange={(e) => handleTextChange('meetLinkDefault', e.target.value)}
+                placeholder="https://teams.microsoft.com/l/meetup-join/..."
                 className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg font-mono text-indigo-700"
                 required
               />
               <Video className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              Dirección para Clases Presenciales
+            </label>
+            <input
+              type="text"
+              value={formData.inPersonAddress || ''}
+              onChange={(e) => handleTextChange('inPersonAddress', e.target.value)}
+              placeholder="Ej: Aula particular: Calle Palma 450 casi 14 de Mayo, Asunción"
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg text-slate-800"
+            />
             <p className="text-[11px] text-slate-500 mt-1">
-              Este enlace se inserta automáticamente en los recordatorios de WhatsApp de tus alumnos.
+              Si el alumno elige clase presencial, esta dirección se incluirá en el recordatorio de WhatsApp.
             </p>
           </div>
         </div>

@@ -2,6 +2,10 @@ export type BookingStatus = 'pending' | 'confirmed' | 'paid' | 'completed' | 'ca
 
 export type PaymentMethod = 'stripe' | 'mercadopago' | 'paypal' | 'bank_transfer';
 
+export type ClassModality = 'online' | 'presencial';
+
+export type OnlinePlatform = 'teams' | 'meet' | 'zoom' | 'other';
+
 export type AcademicLevel = 
   | 'Secundaria / ESO'
   | 'Bachillerato / Selectividad'
@@ -29,11 +33,13 @@ export interface Booking {
   bookingCode: string;
   studentName: string;
   studentEmail: string;
-  studentPhone: string; // e.g. +34 600 000 000
+  studentPhone: string;
   countryCode: string;
   subject: AcademicLevel;
   packageId: string;
   packageName: string;
+  modality: ClassModality; // 'online' or 'presencial'
+  locationOrPlatform?: string;
   date: string; // YYYY-MM-DD
   timeSlot: string; // e.g. "16:00 - 17:00"
   durationMinutes: number;
@@ -43,7 +49,8 @@ export interface Booking {
   paymentMethod: PaymentMethod;
   paymentReference?: string;
   notes?: string;
-  meetLink?: string;
+  meetLink?: string; // Microsoft Teams, Google Meet, or Zoom link
+  inPersonAddress?: string; // Physical address if in-person
   createdAt: string;
   remindersSent: {
     confirmation?: boolean;
@@ -64,11 +71,15 @@ export interface TeacherProfile {
   hourlyRate: number;
   currency: string;
   currencySymbol: string;
-  phoneWhatsApp: string; // For teacher receiving alerts
+  phoneWhatsApp: string;
   email: string;
-  meetLinkDefault: string;
+  preferredPlatform: OnlinePlatform; // 'teams' | 'meet' | 'zoom' | 'other'
+  meetLinkDefault: string; // URL for Microsoft Teams, Google Meet or Zoom
+  inPersonAddress: string; // Classroom address or physical meeting location
+  allowOnline: boolean;
+  allowInPerson: boolean;
   timeSlots: string[];
-  workingDays: number[]; // 1 = Monday, 6 = Saturday
+  workingDays: number[];
   stripePublicKey?: string;
   mercadoPagoPublicKey?: string;
   paypalClientId?: string;
@@ -76,7 +87,7 @@ export interface TeacherProfile {
     bankName: string;
     accountHolder: string;
     accountNumber: string;
-    routingCode: string; // Bizum / CLABE / Alias / CBU
+    routingCode: string;
     instructions: string;
   };
 }
