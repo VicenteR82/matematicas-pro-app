@@ -131,7 +131,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     </div>
                     <span>184 alumnos evaluados</span>
                     <span className="font-mono font-medium text-slate-900">
-                      Desde {teacher.currencySymbol}{teacher.hourlyRate}/h
+                      Desde {teacher.currencySymbol} {teacher.hourlyRate.toLocaleString('es-PY')}/h
                     </span>
                   </div>
 

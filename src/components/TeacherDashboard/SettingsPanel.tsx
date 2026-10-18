@@ -189,8 +189,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <label className="block text-xs font-medium text-slate-700 mb-1">Precio por Hora Base</label>
               <input
                 type="number"
-                min="5"
-                max="500"
+                min="1000"
+                max="2000000"
+                step="5000"
                 value={formData.hourlyRate}
                 onChange={(e) => handleTextChange('hourlyRate', Number(e.target.value))}
                 className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg font-mono"
@@ -204,27 +205,29 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 onChange={(e) => {
                   const curr = e.target.value;
                   const symbolMap: Record<string, string> = {
+                    PYG: 'Gs.',
                     USD: '$',
                     EUR: '€',
-                    MXN: '$',
                     ARS: '$',
+                    BRL: 'R$',
+                    MXN: '$',
                     COP: '$',
                     CLP: '$',
                   };
                   setFormData(prev => ({
                     ...prev,
                     currency: curr,
-                    currencySymbol: symbolMap[curr] || '$',
+                    currencySymbol: symbolMap[curr] || 'Gs.',
                   }));
                 }}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg font-semibold"
               >
-                <option value="USD">USD ($) Dólares</option>
-                <option value="EUR">EUR (€) Euros</option>
-                <option value="MXN">MXN ($) Pesos Mexicanos</option>
-                <option value="ARS">ARS ($) Pesos Argentinos</option>
-                <option value="COP">COP ($) Pesos Colombianos</option>
-                <option value="CLP">CLP ($) Pesos Chilenos</option>
+                <option value="PYG">🇵🇾 PYG (Gs.) Guaraní Paraguayo</option>
+                <option value="USD">💵 USD ($) Dólares</option>
+                <option value="ARS">🇦🇷 ARS ($) Pesos Argentinos</option>
+                <option value="BRL">🇧🇷 BRL (R$) Reales Brasileños</option>
+                <option value="EUR">🇪🇺 EUR (€) Euros</option>
+                <option value="MXN">🇲🇽 MXN ($) Pesos Mexicanos</option>
               </select>
             </div>
           </div>

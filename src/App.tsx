@@ -26,7 +26,13 @@ export default function App() {
   const [teacher, setTeacher] = useState<TeacherProfile>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.TEACHER);
-      return saved ? JSON.parse(saved) : INITIAL_TEACHER_PROFILE;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.currency === 'PYG' && parsed.name.includes('Vicente')) {
+          return parsed;
+        }
+      }
+      return INITIAL_TEACHER_PROFILE;
     } catch {
       return INITIAL_TEACHER_PROFILE;
     }
@@ -35,7 +41,13 @@ export default function App() {
   const [bookings, setBookings] = useState<Booking[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.BOOKINGS);
-      return saved ? JSON.parse(saved) : INITIAL_BOOKINGS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].currency === 'Gs.') {
+          return parsed;
+        }
+      }
+      return INITIAL_BOOKINGS;
     } catch {
       return INITIAL_BOOKINGS;
     }

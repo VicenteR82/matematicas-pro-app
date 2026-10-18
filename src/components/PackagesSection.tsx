@@ -62,8 +62,8 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({
                   {/* Price */}
                   <div className="mb-6 pb-4 border-b border-slate-100">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold text-slate-900 font-mono">
-                        {currencySymbol}{pkg.price}
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">
+                        {currencySymbol} {pkg.price.toLocaleString('es-PY')}
                       </span>
                       <span className="text-xs text-slate-500">
                         {pkg.totalClasses > 1 ? `por ${pkg.totalClasses} clases` : '/ sesión'}

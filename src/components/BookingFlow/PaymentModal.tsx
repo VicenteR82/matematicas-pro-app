@@ -21,12 +21,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   onPaymentSuccess,
   onCancel,
 }) => {
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('stripe');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('bank_transfer');
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [cardExpiry, setCardExpiry] = useState('12/28');
   const [cardCvc, setCardCvc] = useState('888');
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedBank, setCopiedBank] = useState(false);
+
+  const formattedAmount = typeof amount === 'number' ? amount.toLocaleString('es-PY') : amount;
 
   const handleCopyBank = () => {
     navigator.clipboard.writeText(teacher.bankDetails.accountNumber);
@@ -60,13 +62,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           <div className="text-right">
             <span className="text-xs text-slate-400 block">Total a Pagar</span>
             <span className="text-2xl font-black text-indigo-600 font-mono">
-              {currencySymbol}{amount} {currency}
+              {currencySymbol} {formattedAmount}
             </span>
           </div>
         </div>
 
         {/* Payment Methods Selector Tabs */}
         <div className="grid grid-cols-4 gap-2 mb-6">
+          <button
+            type="button"
+            onClick={() => setSelectedMethod('bank_transfer')}
+            className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
+              selectedMethod === 'bank_transfer'
+                ? 'border-emerald-600 bg-emerald-50/50 text-emerald-900 shadow-xs'
+                : 'border-slate-200 hover:border-slate-300 text-slate-600'
+            }`}
+          >
+            <Building className="w-4 h-4 mx-auto mb-1 text-emerald-600" />
+            <span className="text-[11px] font-semibold block leading-tight">SIPAP / Giros</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setSelectedMethod('stripe')}
@@ -77,7 +92,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             }`}
           >
             <CreditCard className="w-4 h-4 mx-auto mb-1 text-indigo-600" />
-            <span className="text-[11px] font-semibold block leading-tight">Tarjeta / Stripe</span>
+            <span className="text-[11px] font-semibold block leading-tight">Tarjeta / Bancard</span>
           </button>
 
           <button
@@ -108,19 +123,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               PP
             </div>
             <span className="text-[11px] font-semibold block leading-tight">PayPal</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSelectedMethod('bank_transfer')}
-            className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer ${
-              selectedMethod === 'bank_transfer'
-                ? 'border-emerald-600 bg-emerald-50/50 text-emerald-900 shadow-xs'
-                : 'border-slate-200 hover:border-slate-300 text-slate-600'
-            }`}
-          >
-            <Building className="w-4 h-4 mx-auto mb-1 text-emerald-600" />
-            <span className="text-[11px] font-semibold block leading-tight">Bizum / Transf</span>
           </button>
         </div>
 

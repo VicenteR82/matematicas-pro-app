@@ -165,9 +165,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <DollarSign className="w-4 h-4 text-emerald-600" />
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tabular-nums">
-              {teacher.currencySymbol}{totalEarnings}
+              {teacher.currencySymbol} {totalEarnings.toLocaleString('es-PY')}
             </p>
-            <p className="text-[11px] text-slate-500 mt-1">Cobros en Stripe, MP y Bizum</p>
+            <p className="text-[11px] text-slate-500 mt-1">Cobros por SIPAP, Tigo Money y Tarjetas</p>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -349,10 +349,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         {/* Amount & Method */}
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <span className="font-mono font-bold text-slate-900">
-                            {teacher.currencySymbol}{b.amount} {b.currency}
+                            {teacher.currencySymbol} {b.amount.toLocaleString('es-PY')} {b.currency}
                           </span>
                           <span className="block text-[11px] text-slate-500 capitalize">
-                            Vía {b.paymentMethod === 'bank_transfer' ? 'Bizum / Transf.' : b.paymentMethod}
+                            Vía {b.paymentMethod === 'bank_transfer' ? 'SIPAP / Billetera' : b.paymentMethod}
                           </span>
                         </td>
 

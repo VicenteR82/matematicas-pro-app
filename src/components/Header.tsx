@@ -29,10 +29,10 @@ export const Header: React.FC<HeaderProps> = ({
             className="text-left group cursor-pointer"
           >
             <span className="text-xl font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors whitespace-nowrap">
-              Prof. Elena Morales
+              Prof. Vicente Rolón
             </span>
             <span className="text-xs text-slate-500 block font-normal whitespace-nowrap">
-              Matemáticas Universitarias & Bachillerato
+              Matemáticas · Paraguay 🇵🇾
             </span>
           </button>
         </div>

@@ -25,14 +25,17 @@ const ACADEMIC_SUBJECTS: { id: AcademicLevel; label: string; iconText: string; d
 ];
 
 const COUNTRY_CODES = [
-  { code: '+34', country: 'España', flag: '🇪🇸' },
-  { code: '+52', country: 'México', flag: '🇲🇽' },
+  { code: '+595', country: 'Paraguay', flag: '🇵🇾' },
   { code: '+54', country: 'Argentina', flag: '🇦🇷' },
-  { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+  { code: '+55', country: 'Brasil', flag: '🇧🇷' },
+  { code: '+598', country: 'Uruguay', flag: '🇺🇾' },
+  { code: '+591', country: 'Bolivia', flag: '🇧🇴' },
   { code: '+56', country: 'Chile', flag: '🇨🇱' },
   { code: '+51', country: 'Perú', flag: '🇵🇪' },
-  { code: '+593', country: 'Ecuador', flag: '🇪🇨' },
-  { code: '+1', country: 'USA / Canadá', flag: '🇺🇸' },
+  { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+  { code: '+52', country: 'México', flag: '🇲🇽' },
+  { code: '+34', country: 'España', flag: '🇪🇸' },
+  { code: '+1', country: 'USA', flag: '🇺🇸' },
 ];
 
 export const BookingWizard: React.FC<BookingWizardProps> = ({
@@ -75,7 +78,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   // Student Info
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
-  const [countryCode, setCountryCode] = useState('+34');
+  const [countryCode, setCountryCode] = useState('+595');
   const [studentPhoneNum, setStudentPhoneNum] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -260,8 +263,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
                           <p className="text-[11px] text-slate-500 mb-3">{pkg.durationMinutes} min / sesión</p>
                         </div>
                         <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
-                          <span className="text-lg font-black text-slate-900 font-mono">
-                            {teacher.currencySymbol}{pkg.price}
+                          <span className="text-base sm:text-lg font-black text-slate-900 font-mono">
+                            {teacher.currencySymbol} {pkg.price.toLocaleString('es-PY')}
                           </span>
                           {pkg.discountPercentage && (
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
@@ -380,7 +383,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
                 <div className="text-right">
                   <span className="text-slate-500">Monto:</span>
                   <p className="font-bold text-indigo-600 font-mono text-sm">
-                    {teacher.currencySymbol}{selectedPackage.price} {teacher.currency}
+                    {teacher.currencySymbol} {selectedPackage.price.toLocaleString('es-PY')} {teacher.currency}
                   </p>
                 </div>
               </div>
@@ -521,7 +524,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
                 <div className="flex justify-between items-center pt-2 border-t border-indigo-200/60 font-bold text-slate-900 text-sm">
                   <span>Total a Pagar:</span>
                   <span className="text-indigo-700 font-mono text-base">
-                    {teacher.currencySymbol}{selectedPackage.price} {teacher.currency}
+                    {teacher.currencySymbol} {selectedPackage.price.toLocaleString('es-PY')} {teacher.currency}
                   </span>
                 </div>
               </div>
@@ -542,7 +545,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
                   className="px-6 py-3 text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm flex items-center gap-2 cursor-pointer transition-colors"
                 >
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Proceder al Pago Seguro ({teacher.currencySymbol}{selectedPackage.price})</span>
+                  <span>Proceder al Pago ({teacher.currencySymbol} {selectedPackage.price.toLocaleString('es-PY')})</span>
                 </button>
               </div>
             </form>
