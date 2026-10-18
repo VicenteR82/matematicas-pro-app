@@ -13,9 +13,11 @@ const srcFiles = import.meta.glob<string>([
   '/Dockerfile',
   '/.dockerignore',
   '/README.md',
+  '/.env.example',
+  '/firebase-applet-config.json',
 ], { query: '?raw', import: 'default', eager: true });
 
-export async function exportProjectAsZip(): Promise<void> {
+export async function generateProjectZipBlob(): Promise<Blob> {
   const zip = new JSZip();
 
   // Add each file to the zip
@@ -37,7 +39,15 @@ dist-ssr
 `);
 
   // Generate the zip blob
-  const blob = await zip.generateAsync({ type: 'blob' });
+  return await zip.generateAsync({ 
+    type: 'blob',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 }
+  });
+}
+
+export async function exportProjectAsZip(): Promise<void> {
+  const blob = await generateProjectZipBlob();
 
   // Trigger browser download
   const url = URL.createObjectURL(blob);

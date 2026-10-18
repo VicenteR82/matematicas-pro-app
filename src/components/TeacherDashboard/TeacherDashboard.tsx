@@ -154,16 +154,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {onOpenGoogleDriveBackup && (
-              <button
-                onClick={onOpenGoogleDriveBackup}
-                className="px-3.5 py-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-                title="Subir código fuente y respaldo a Google Drive"
-              >
-                <Cloud className="w-4 h-4 text-blue-600" />
-                <span>Subir a Google Drive</span>
-              </button>
-            )}
 
             <button
               onClick={handleExportCSV}

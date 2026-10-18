@@ -11,7 +11,12 @@ import {
   AlertCircle, 
   LogOut, 
   Sparkles,
-  Download
+  Download,
+  Terminal,
+  Copy,
+  Check,
+  FolderGit2,
+  CheckCircle
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { 
@@ -30,22 +35,32 @@ import { exportProjectAsZip } from '../../utils/exportProject';
 interface GoogleDriveBackupModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: 'zip' | 'drive';
 }
 
 export const GoogleDriveBackupModal: React.FC<GoogleDriveBackupModalProps> = ({
   isOpen,
   onClose,
+  initialTab = 'zip',
 }) => {
+  const [activeTab, setActiveTab] = useState<'zip' | 'drive'>(initialTab);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [copiedCommands, setCopiedCommands] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<DriveUploadedFile | null>(null);
   const [driveBackups, setDriveBackups] = useState<DriveUploadedFile[]>([]);
   const [isLoadingBackups, setIsLoadingBackups] = useState(false);
   const [showConfirmUploadModal, setShowConfirmUploadModal] = useState(false);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab, isOpen]);
 
   // Initialize Firebase Auth listener on modal mount
   useEffect(() => {
@@ -58,7 +73,6 @@ export const GoogleDriveBackupModal: React.FC<GoogleDriveBackupModalProps> = ({
         fetchBackups(currentToken);
       },
       () => {
-        // Not authenticated or token expired
         setUser(null);
         setToken(null);
       }
@@ -93,7 +107,11 @@ export const GoogleDriveBackupModal: React.FC<GoogleDriveBackupModalProps> = ({
       }
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'No se pudo conectar con tu cuenta de Google.');
+      if (err.message?.includes('popup-closed-by-user') || err.message?.includes('closed') || err.message?.includes('popup_closed')) {
+        setErrorMsg('La ventana de Google se cerró antes de completar la autorización. Puedes volver a intentarlo cuando gustes.');
+      } else {
+        setErrorMsg(err.message || 'No se pudo conectar con tu cuenta de Google.');
+      }
     } finally {
       setIsLoggingIn(false);
     }
@@ -109,6 +127,45 @@ export const GoogleDriveBackupModal: React.FC<GoogleDriveBackupModalProps> = ({
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleDirectDownload = async () => {
+    setIsDownloadingZip(true);
+    setDownloadSuccess(false);
+    try {
+      await exportProjectAsZip();
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 5000);
+    } catch (err: any) {
+      console.error('Error exporting zip:', err);
+      setErrorMsg('No se pudo generar el ZIP: ' + (err.message || 'Error desconocido'));
+    } finally {
+      setIsDownloadingZip(false);
+    }
+  };
+
+  const gitCommandsText = `# 1. Inicializar repositorio Git en la carpeta descomprimida
+git init
+
+# 2. Agregar todos los archivos
+git add .
+
+# 3. Crear el primer commit
+git commit -m "feat: Sistema de clases y reservas de matematicas"
+
+# 4. Asignar rama principal main
+git branch -M main
+
+# 5. Conectar con tu repositorio de GitHub (reemplaza el enlace por el tuyo)
+git remote add origin https://github.com/TU_USUARIO/TU_REPOSITORIO.git
+
+# 6. Subir tus cambios
+git push -u origin main`;
+
+  const handleCopyGitCommands = () => {
+    navigator.clipboard.writeText(gitCommandsText);
+    setCopiedCommands(true);
+    setTimeout(() => setCopiedCommands(false), 2500);
   };
 
   // Called when user clicks "Subir a Drive" -> Prompts mandatory confirmation modal
@@ -159,18 +216,15 @@ export const GoogleDriveBackupModal: React.FC<GoogleDriveBackupModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
-              <Cloud className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+              <Download className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span>Subir Proyecto a Google Drive</span>
-                <span className="text-[10px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full">
-                  Google Drive API
-                </span>
+                <span>Descargar Código o Guardar en Drive</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Guarda una copia íntegra de tu aplicación directamente en tu cuenta de Drive.
+                Obtén el proyecto completo en tu equipo para subirlo con Git o guárdalo directamente en Google Drive.
               </p>
             </div>
           </div>
@@ -183,227 +237,373 @@ export const GoogleDriveBackupModal: React.FC<GoogleDriveBackupModalProps> = ({
           </button>
         </div>
 
-        {/* Content Body */}
-        <div className="flex-1 overflow-y-auto py-5 space-y-5 text-xs text-slate-700 pr-1">
-          
-          {/* Account status box */}
-          {!user ? (
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-4">
-              <div className="max-w-md mx-auto space-y-2">
-                <p className="text-sm font-bold text-slate-900">
-                  Conecta tu cuenta de Google
-                </p>
-                <p className="text-xs text-slate-500">
-                  Para guardar el código y las copias de seguridad de la plataforma en tu unidad personal de Google Drive con un solo clic.
-                </p>
-              </div>
+        {/* Tab Selection */}
+        <div className="flex gap-2 p-1 bg-slate-100 rounded-xl my-4 shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab('zip')}
+            className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              activeTab === 'zip'
+                ? 'bg-white text-indigo-700 shadow-xs border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Descarga Directa ZIP (Recomendado para Git)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('drive')}
+            className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              activeTab === 'drive'
+                ? 'bg-white text-blue-700 shadow-xs border border-slate-200/60'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <Cloud className="w-3.5 h-3.5" />
+            <span>Subir a Google Drive</span>
+          </button>
+        </div>
 
-              {/* Standard Sign in with Google Button */}
-              <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={handleSignIn}
-                  disabled={isLoggingIn}
-                  className="inline-flex items-center gap-3 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-300 shadow-xs hover:shadow-sm transition-all cursor-pointer disabled:opacity-60"
-                >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                  </svg>
-                  <span>
-                    {isLoggingIn ? 'Conectando con Google...' : 'Iniciar Sesión con Google'}
+        {/* Content Body */}
+        <div className="flex-1 overflow-y-auto space-y-4 text-xs text-slate-700 pr-1">
+          
+          {/* TAB 1: DIRECT ZIP DOWNLOAD & GIT */}
+          {activeTab === 'zip' && (
+            <div className="space-y-4">
+              {/* Main Download Card */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/60 via-white to-indigo-50/50 border border-emerald-200/80 shadow-xs space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                      <span>Descarga Directa del Código Fuente Completo</span>
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Empaqueta en un archivo <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 text-emerald-800">.zip</code> todos los componentes React 19, TypeScript, estilos Tailwind CSS, Vite, Dockerfile, configuración de Vercel/Railway y archivos listos para abrir en Visual Studio Code.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleDirectDownload}
+                    disabled={isDownloadingZip}
+                    className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
+                  >
+                    {isDownloadingZip ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Generando ZIP...</span>
+                      </>
+                    ) : downloadSuccess ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-white" />
+                        <span>¡Descarga iniciada con éxito!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        <span>Descargar ZIP a mi Computadora Ahora</span>
+                      </>
+                    )}
+                  </button>
+
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    100% directo · Sin necesidad de iniciar sesión · Libre de bloqueos
                   </span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                {user.photoURL ? (
-                  <img 
-                    src={user.photoURL} 
-                    alt={user.displayName || 'Google User'} 
-                    className="w-10 h-10 rounded-full border border-blue-300"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center">
-                    {user.displayName?.[0] || 'U'}
+                </div>
+
+                {downloadSuccess && (
+                  <div className="p-3 bg-emerald-100/70 border border-emerald-300 rounded-xl text-emerald-900 flex items-center gap-2 text-xs">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>El archivo <strong>matematicas-pro-app.zip</strong> se ha guardado en tu carpeta de Descargas. Ya puedes descomprimirlo y subirlo a Git.</span>
                   </div>
                 )}
-                <div>
-                  <p className="font-bold text-slate-900 text-xs">
-                    {user.displayName || 'Usuario de Google'}
+              </div>
+
+              {/* Git instructions box */}
+              <div className="p-4 rounded-xl bg-slate-900 text-slate-100 space-y-3 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold text-xs text-white">
+                      Comandos para subir a tu GitHub desde tu equipo
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyGitCommands}
+                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold rounded-lg flex items-center gap-1.5 transition-colors border border-slate-700 cursor-pointer"
+                  >
+                    {copiedCommands ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400">¡Copiado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Copiar comandos</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="space-y-1.5 text-[11px] text-slate-300">
+                  <p className="flex items-center gap-1.5 text-slate-400">
+                    <span className="w-4 h-4 rounded-full bg-slate-800 text-slate-200 flex items-center justify-center text-[10px] font-bold">1</span>
+                    <span>Descomprime el ZIP descargado y abre una terminal (o VS Code) en esa carpeta.</span>
                   </p>
-                  <p className="text-[11px] text-slate-500 font-mono">
-                    {user.email}
+                  <p className="flex items-center gap-1.5 text-slate-400">
+                    <span className="w-4 h-4 rounded-full bg-slate-800 text-slate-200 flex items-center justify-center text-[10px] font-bold">2</span>
+                    <span>Pega y ejecuta los siguientes comandos en tu terminal:</span>
                   </p>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="px-2.5 py-1.5 text-[11px] text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Cerrar Sesión</span>
-                </button>
+                <pre className="p-3 bg-black/50 rounded-lg text-[11px] font-mono text-emerald-300 overflow-x-auto border border-slate-800 leading-relaxed whitespace-pre">
+                  {gitCommandsText}
+                </pre>
+
+                <div className="pt-1 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80">
+                  <span>Para probarlo en local: <code className="text-amber-300 bg-slate-800 px-1 py-0.5 rounded">npm install && npm run dev</code></span>
+                  <span>Puerto predeterminado: 3000 o 5173</span>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Error Message banner */}
-          {errorMsg && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <div className="flex-1 text-[11px]">
-                <p className="font-semibold">Ocurrió un inconveniente:</p>
-                <p>{errorMsg}</p>
-              </div>
-            </div>
-          )}
+          {/* TAB 2: GOOGLE DRIVE UPLOAD */}
+          {activeTab === 'drive' && (
+            <div className="space-y-4">
+              {/* Account status box */}
+              {!user ? (
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-4">
+                  <div className="max-w-md mx-auto space-y-2">
+                    <p className="text-sm font-bold text-slate-900">
+                      Conecta tu cuenta de Google Drive
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Para guardar el código y las copias de seguridad de la plataforma en tu unidad personal de Google Drive con un solo clic.
+                    </p>
+                  </div>
 
-          {/* Upload Action Box */}
-          {user && (
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/50 via-white to-blue-50/50 border border-indigo-100 space-y-4">
-              <div>
-                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-indigo-600" />
-                  <span>Subir copia completa a tu Google Drive</span>
-                </h4>
-                <p className="text-xs text-slate-600 mt-1">
-                  Empaqueta todos los archivos (código React, TypeScript, Vite, estilos Tailwind, configuración de Docker, Railway y Vercel) y los sube a tu unidad.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleInitiateUpload}
-                  disabled={isUploading}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-60"
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>{statusMessage || 'Subiendo a Drive...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4" />
-                      <span>Subir Proyecto a mi Google Drive Ahora</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={exportProjectAsZip}
-                  className="px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold border border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5 text-slate-500" />
-                  <span>O descargar ZIP al computador</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Last Upload Success Card */}
-          {uploadedFile && (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-3 animate-in fade-in duration-200">
-              <div className="flex items-center gap-2 text-emerald-800">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                <h5 className="font-bold text-xs text-emerald-950">
-                  ¡Proyecto guardado exitosamente en tu Google Drive!
-                </h5>
-              </div>
-
-              <div className="bg-white p-3 rounded-lg border border-emerald-200/80 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-mono text-xs font-bold text-slate-900 truncate">
-                    <FileArchive className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="truncate">{uploadedFile.name}</span>
+                  {/* Standard Sign in with Google Button */}
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleSignIn}
+                      disabled={isLoggingIn}
+                      className="inline-flex items-center gap-3 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-300 shadow-xs hover:shadow-sm transition-all cursor-pointer disabled:opacity-60"
+                    >
+                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                      </svg>
+                      <span>
+                        {isLoggingIn ? 'Conectando con Google...' : 'Iniciar Sesión con Google'}
+                      </span>
+                    </button>
                   </div>
                 </div>
-                <p className="text-[11px] text-slate-500">
-                  Guardado en tu unidad de Google Drive ({user?.email})
-                </p>
-              </div>
-
-              <div className="flex items-center justify-end">
-                <a
-                  href={uploadedFile.webViewLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                >
-                  <span>Abrir en Google Drive</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
-          )}
-
-          {/* Previous Drive Backups List */}
-          {user && (
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
-                <h5 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                  <FolderCheck className="w-4 h-4 text-indigo-600" />
-                  <span>Respaldos en tu Google Drive</span>
-                </h5>
-                <button
-                  type="button"
-                  onClick={() => token && fetchBackups(token)}
-                  disabled={isLoadingBackups}
-                  className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isLoadingBackups ? 'animate-spin' : ''}`} />
-                  <span>Actualizar lista</span>
-                </button>
-              </div>
-
-              {isLoadingBackups ? (
-                <div className="p-6 text-center text-slate-400 text-xs">
-                  Cargando archivos de Google Drive...
-                </div>
-              ) : driveBackups.length === 0 ? (
-                <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-slate-500 text-xs">
-                  Aún no has subido copias a Google Drive. Haz clic en "Subir Proyecto a mi Google Drive Ahora" para generar tu primera copia de seguridad.
-                </div>
               ) : (
-                <div className="space-y-2">
-                  {driveBackups.map((file) => (
-                    <div 
-                      key={file.id} 
-                      className="p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-2.5 truncate">
-                        <FileArchive className="w-4 h-4 text-indigo-600 shrink-0" />
-                        <div className="truncate">
-                          <p className="font-bold text-slate-800 text-xs truncate">
-                            {file.name}
-                          </p>
-                          <p className="text-[10px] text-slate-400">
-                            {file.createdTime ? new Date(file.createdTime).toLocaleString('es-PY') : 'Fecha no disponible'}
-                          </p>
-                        </div>
+                <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {user.photoURL ? (
+                      <img 
+                        src={user.photoURL} 
+                        alt={user.displayName || 'Google User'} 
+                        className="w-10 h-10 rounded-full border border-blue-300"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center">
+                        {user.displayName?.[0] || 'U'}
                       </div>
-
-                      <a
-                        href={file.webViewLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
-                      >
-                        <span>Ver en Drive</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                    )}
+                    <div>
+                      <p className="font-bold text-slate-900 text-xs">
+                        {user.displayName || 'Usuario de Google'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 font-mono">
+                        {user.email}
+                      </p>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="px-2.5 py-1.5 text-[11px] text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Cerrar Sesión</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message banner */}
+              {errorMsg && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="flex-1 text-[11px]">
+                    <p className="font-semibold">Ocurrió un inconveniente:</p>
+                    <p>{errorMsg}</p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('zip')}
+                      className="mt-1 text-xs font-semibold text-indigo-700 underline cursor-pointer"
+                    >
+                      Haz clic aquí para usar la Descarga Directa ZIP en su lugar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Action Box */}
+              {user && (
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/50 via-white to-blue-50/50 border border-indigo-100 space-y-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-indigo-600" />
+                      <span>Subir copia completa a tu Google Drive</span>
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Empaqueta todos los archivos y los sube a tu unidad personal de Google Drive.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleInitiateUpload}
+                      disabled={isUploading}
+                      className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span>{statusMessage || 'Subiendo a Drive...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          <span>Subir Proyecto a mi Google Drive Ahora</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDirectDownload}
+                      className="px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold border border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5 text-slate-500" />
+                      <span>O descargar ZIP directo</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Last Upload Success Card */}
+              {uploadedFile && (
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2 text-emerald-800">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <h5 className="font-bold text-xs text-emerald-950">
+                      ¡Proyecto guardado exitosamente en tu Google Drive!
+                    </h5>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-lg border border-emerald-200/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 font-mono text-xs font-bold text-slate-900 truncate">
+                        <FileArchive className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="truncate">{uploadedFile.name}</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Guardado en tu unidad de Google Drive ({user?.email})
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-end">
+                    <a
+                      href={uploadedFile.webViewLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    >
+                      <span>Abrir en Google Drive</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Previous Drive Backups List */}
+              {user && (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <h5 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                      <FolderCheck className="w-4 h-4 text-indigo-600" />
+                      <span>Respaldos en tu Google Drive</span>
+                    </h5>
+                    <button
+                      type="button"
+                      onClick={() => token && fetchBackups(token)}
+                      disabled={isLoadingBackups}
+                      className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${isLoadingBackups ? 'animate-spin' : ''}`} />
+                      <span>Actualizar lista</span>
+                    </button>
+                  </div>
+
+                  {isLoadingBackups ? (
+                    <div className="p-6 text-center text-slate-400 text-xs">
+                      Cargando archivos de Google Drive...
+                    </div>
+                  ) : driveBackups.length === 0 ? (
+                    <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-slate-500 text-xs">
+                      Aún no has subido copias a Google Drive. Haz clic en "Subir Proyecto a mi Google Drive Ahora" para generar tu primera copia de seguridad.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {driveBackups.map((file) => (
+                        <div 
+                          key={file.id} 
+                          className="p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                        >
+                          <div className="flex items-center gap-2.5 truncate">
+                            <FileArchive className="w-4 h-4 text-indigo-600 shrink-0" />
+                            <div className="truncate">
+                              <p className="font-bold text-slate-800 text-xs truncate">
+                                {file.name}
+                              </p>
+                              <p className="text-[10px] text-slate-400">
+                                {file.createdTime ? new Date(file.createdTime).toLocaleString('es-PY') : 'Fecha no disponible'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <a
+                            href={file.webViewLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
+                          >
+                            <span>Ver en Drive</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -414,14 +614,14 @@ export const GoogleDriveBackupModal: React.FC<GoogleDriveBackupModalProps> = ({
         {/* Footer */}
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between shrink-0">
           <p className="text-[11px] text-slate-400">
-            Conexión autorizada bajo alcance <code className="font-mono bg-slate-100 px-1 rounded">drive.file</code>
+            {activeTab === 'zip' ? 'Descarga local empaquetada con JSZip' : 'Conexión autorizada bajo alcance drive.file'}
           </p>
           <button
             type="button"
             onClick={onClose}
             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
           >
-            Listo
+            Cerrar
           </button>
         </div>
 
