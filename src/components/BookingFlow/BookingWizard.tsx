@@ -7,6 +7,8 @@ import { WhatsAppConfirmationModal } from './WhatsAppConfirmationModal';
 interface BookingWizardProps {
   packages: ClassPackage[];
   teacher: TeacherProfile;
+  teachers?: TeacherProfile[];
+  onSelectTeacher?: (teacherId: string) => void;
   existingBookings: Booking[];
   confirmationTemplate: WhatsAppTemplate;
   onBookingCreated: (booking: Booking) => void;
@@ -41,6 +43,8 @@ const COUNTRY_CODES = [
 export const BookingWizard: React.FC<BookingWizardProps> = ({
   packages,
   teacher,
+  teachers = [],
+  onSelectTeacher,
   existingBookings,
   confirmationTemplate,
   onBookingCreated,
@@ -123,6 +127,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
 
     const newBooking: Booking = {
       id: `bk-${Date.now()}`,
+      teacherId: teacher.id,
+      teacherName: teacher.name,
       bookingCode: randomCode,
       studentName: studentName.trim(),
       studentEmail: studentEmail.trim(),
@@ -210,10 +216,57 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
           {currentStep === 1 && (
             <div className="space-y-8 animate-in fade-in duration-150">
               
+              {/* Select Teacher (when multiple teachers exist) */}
+              {teachers.length > 1 && onSelectTeacher && (
+                <div>
+                  <label className="block text-sm font-bold text-slate-900 mb-2.5">
+                    1. ¿Con qué docente deseas tener tu clase?
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {teachers.map((t) => {
+                      const isSelected = t.id === teacher.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => onSelectTeacher(t.id)}
+                          className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3.5 ${
+                            isSelected
+                              ? 'bg-white border-indigo-600 ring-2 ring-indigo-600/20 shadow-xs'
+                              : 'bg-white border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-200 shrink-0 border border-slate-200">
+                            <img
+                              src={t.avatarUrl || '/src/assets/images/math_teacher_portrait_1792284327362.jpg'}
+                              alt={t.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-xs text-slate-900 truncate">{t.name}</span>
+                              {isSelected && <Check className="w-4 h-4 text-indigo-600 shrink-0" />}
+                            </div>
+                            <p className="text-[11px] text-slate-500 truncate">{t.degree || t.title}</p>
+                            <span className="inline-block mt-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
+                              {t.currencySymbol} {t.hourlyRate.toLocaleString('es-PY')}/h · {t.experienceYears} años exp.
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Select Modality */}
               <div>
                 <label className="block text-sm font-bold text-slate-900 mb-2">
-                  1. Elige la modalidad de tu clase
+                  {teachers.length > 1 ? '2.' : '1.'} Elige la modalidad de tu clase
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button

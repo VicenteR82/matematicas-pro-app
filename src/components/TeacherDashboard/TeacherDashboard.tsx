@@ -25,6 +25,10 @@ import { openWhatsAppChat, formatWhatsAppMessage } from '../../utils/whatsapp';
 
 interface TeacherDashboardProps {
   teacher: TeacherProfile;
+  teachers?: TeacherProfile[];
+  onSelectTeacher?: (id: string) => void;
+  onAddTeacher?: (newTeacher: TeacherProfile) => void;
+  onDeleteTeacher?: (id: string) => void;
   bookings: Booking[];
   templates: WhatsAppTemplate[];
   onUpdateBookingStatus: (bookingId: string, status: BookingStatus) => void;
@@ -35,6 +39,10 @@ interface TeacherDashboardProps {
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   teacher,
+  teachers = [],
+  onSelectTeacher,
+  onAddTeacher,
+  onDeleteTeacher,
   bookings,
   templates,
   onUpdateBookingStatus,
@@ -44,6 +52,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'bookings' | 'whatsapp' | 'settings' | 'students'>('bookings');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [teacherFilter, setTeacherFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Quick WhatsApp sender popup modal
@@ -64,11 +73,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   // Filtered Bookings
   const filteredBookings = bookings.filter(b => {
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
+    const matchesTeacher = teacherFilter === 'all' || b.teacherId === teacherFilter || (!b.teacherId && teacherFilter === teacher.id);
     const matchesSearch = 
       b.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       b.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       b.bookingCode.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
+    return matchesStatus && matchesTeacher && matchesSearch;
   });
 
   const handleExportCSV = () => {
@@ -261,15 +271,30 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             
             {/* Filter and search bar */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="relative flex-1 max-w-sm">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar por alumno, materia o código..."
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <div className="flex flex-wrap items-center gap-2 flex-1">
+                <div className="relative flex-1 min-w-[200px]">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar por alumno, materia o código..."
+                    className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                </div>
+
+                {teachers.length > 1 && (
+                  <select
+                    value={teacherFilter}
+                    onChange={(e) => setTeacherFilter(e.target.value)}
+                    className="px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-medium text-slate-700 cursor-pointer"
+                  >
+                    <option value="all">👨‍🏫 Todos los docentes ({teachers.length})</option>
+                    {teachers.map(t => (
+                      <option key={t.id} value={t.id}>Docente: {t.name}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {/* Status segmented control */}
@@ -472,7 +497,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       <button
                         onClick={() => {
                           const lastBooking = studentBookings[studentBookings.length - 1];
-                          const msg = `👋 ¡Hola ${first.studentName}! Soy la Prof. Elena Morales. Quería consultar cómo te sentiste con los ejercicios de la última clase y si deseas agendar tu próxima sesión.`;
+                          const msg = `👋 ¡Hola ${first.studentName}! Soy ${teacher.name}. Quería consultar cómo te sentiste con los ejercicios de la última clase y si deseas agendar tu próxima sesión.`;
                           openWhatsAppChat(first.studentPhone, msg);
                         }}
                         className="text-xs text-emerald-700 hover:text-emerald-900 font-semibold flex items-center gap-1 cursor-pointer"
@@ -492,6 +517,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         {activeTab === 'settings' && (
           <SettingsPanel
             teacher={teacher}
+            teachers={teachers}
+            onSelectTeacher={onSelectTeacher}
+            onAddTeacher={onAddTeacher}
+            onDeleteTeacher={onDeleteTeacher}
             onSaveTeacher={onSaveTeacher}
           />
         )}

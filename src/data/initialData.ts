@@ -63,10 +63,12 @@ export const INITIAL_PACKAGES: ClassPackage[] = [
 ];
 
 export const INITIAL_TEACHER_PROFILE: TeacherProfile = {
+  id: 'teacher-1',
   name: 'Prof. Vicente Rolón',
   title: 'Licenciado en Ciencias Matemáticas & Docente Especialista',
   degree: 'Docente de Matemáticas · Especialista en Cálculo, Álgebra y Cursos Probatorios',
   bio: 'Acompañando a estudiantes de colegio secundario, bachillerato y carreras universitarias (Ingeniería, Ciencias Económicas, Politécnica) a comprender las matemáticas paso a paso y aprobar sus exámenes con seguridad.',
+  avatarUrl: '/src/assets/images/math_teacher_portrait_1792284327362.jpg',
   experienceYears: 12,
   studentsCount: 520,
   rating: 4.98,
@@ -102,6 +104,49 @@ export const INITIAL_TEACHER_PROFILE: TeacherProfile = {
     instructions: 'Puedes abonar por Transferencia Bancaria SIPAP o por Billetera Tigo Money / Personal Pay. Envía tu comprobante con tu nombre.',
   },
 };
+
+export const INITIAL_TEACHERS: TeacherProfile[] = [
+  INITIAL_TEACHER_PROFILE,
+  {
+    id: 'teacher-2',
+    name: 'Lic. Elena Morales',
+    title: 'Magíster en Didáctica y Docente de Bachillerato',
+    degree: 'Especialista en Geometría Analítica, Trigonometría y Probabilidad',
+    bio: 'Clases dinámicas y explicaciones visuales paso a paso para estudiantes que buscan asegurar su nota en exámenes y pruebas de admisión.',
+    avatarUrl: '/src/assets/images/math_teacher_portrait_1792284327362.jpg',
+    experienceYears: 9,
+    studentsCount: 390,
+    rating: 4.97,
+    hourlyRate: 80000,
+    currency: 'PYG',
+    currencySymbol: 'Gs.',
+    phoneWhatsApp: '+595981987654',
+    email: 'elena.morales.mate@gmail.com',
+    preferredPlatform: 'meet',
+    meetLinkDefault: 'https://meet.google.com/abc-mate-demo',
+    inPersonAddress: 'Aula 2: Avda. Mariscal López y Sacramento, Asunción',
+    allowOnline: true,
+    allowInPerson: true,
+    timeSlots: [
+      '08:30 - 09:30',
+      '10:00 - 11:00',
+      '14:30 - 15:30',
+      '16:00 - 17:00',
+      '17:30 - 18:30',
+    ],
+    workingDays: [1, 2, 3, 4, 5],
+    stripePublicKey: '',
+    mercadoPagoPublicKey: '',
+    paypalClientId: '',
+    bankDetails: {
+      bankName: 'Transferencia SIPAP (Banco Familiar / Basa)',
+      accountHolder: 'Elena Morales',
+      accountNumber: 'Cta: 510928371 · CI: 5.120.443',
+      routingCode: 'Tigo Money: 0981 987 654',
+      instructions: 'Abonar vía SIPAP o Billetera Tigo Money y enviar comprobante por WhatsApp.',
+    },
+  },
+];
 
 export const INITIAL_WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   {

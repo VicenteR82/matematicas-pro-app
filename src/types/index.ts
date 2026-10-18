@@ -30,6 +30,8 @@ export interface ClassPackage {
 
 export interface Booking {
   id: string;
+  teacherId?: string;
+  teacherName?: string;
   bookingCode: string;
   studentName: string;
   studentEmail: string;
@@ -61,10 +63,12 @@ export interface Booking {
 }
 
 export interface TeacherProfile {
+  id: string;
   name: string;
   title: string;
   degree: string;
   bio: string;
+  avatarUrl?: string;
   experienceYears: number;
   studentsCount: number;
   rating: number;

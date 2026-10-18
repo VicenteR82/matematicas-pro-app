@@ -4,6 +4,8 @@ import { TeacherProfile } from '../types';
 
 interface HeroSectionProps {
   teacher: TeacherProfile;
+  teachers?: TeacherProfile[];
+  onSelectTeacher?: (teacherId: string) => void;
   onStartBooking: () => void;
   onExploreFeatures: () => void;
   onViewTeacherDashboard: () => void;
@@ -11,6 +13,8 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   teacher,
+  teachers = [],
+  onSelectTeacher,
   onStartBooking,
   onExploreFeatures,
   onViewTeacherDashboard,
@@ -26,7 +30,50 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+        
+        {/* Multi-Teacher Selector Banner (shown when 2 or more teachers are registered) */}
+        {teachers.length > 1 && onSelectTeacher && (
+          <div className="mb-8 p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md">
+                Plantel Docente ({teachers.length})
+              </span>
+              <span className="text-xs text-slate-500 hidden sm:inline">Elige con qué docente deseas agendar:</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {teachers.map((t) => {
+                const isSelected = t.id === teacher.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => onSelectTeacher(t.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white shadow-xs ring-2 ring-indigo-300'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-slate-200 shrink-0">
+                      <img
+                        src={t.avatarUrl || '/src/assets/images/math_teacher_portrait_1792284327362.jpg'}
+                        alt={t.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                    <span>{t.name}</span>
+                    {isSelected && <span className="text-[10px] bg-indigo-500 px-1 rounded text-white">Activo</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
           
           {/* Left Column: Hero Content */}
@@ -36,7 +83,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="flex items-center gap-2 text-xs font-semibold text-indigo-700 tracking-wide uppercase mb-3">
               <span>{teacher.title}</span>
               <span aria-hidden="true" className="text-slate-300">·</span>
-              <span>100% Online & Personalizado</span>
+              <span>100% Personalizado</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15] text-balance mb-4">
@@ -44,8 +91,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </h1>
 
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mb-6">
-              Reserva tu clase particular con la <strong className="text-slate-800 font-semibold">{teacher.name}</strong>. 
-              Elige tu horario en tiempo real, abona de forma segura con Stripe, Mercado Pago o Bizum, y recibe 
+              Reserva tu clase particular con <strong className="text-slate-800 font-semibold">{teacher.name}</strong>. 
+              Elige tu horario en tiempo real, abona de forma segura con SIPAP o tarjeta, y recibe 
               <span className="text-emerald-700 font-medium"> recordatorios automáticos por WhatsApp</span> con el enlace a tu clase.
             </p>
 
@@ -103,8 +150,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 {/* Teacher Photo */}
                 <div className="aspect-square w-full relative bg-slate-100 overflow-hidden">
                   <img
-                    src="/src/assets/images/math_teacher_portrait_1792284327362.jpg"
-                    alt="Profesora de Matemáticas Elena Morales"
+                    src={teacher.avatarUrl || '/src/assets/images/math_teacher_portrait_1792284327362.jpg'}
+                    alt={teacher.name}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover object-center"
                     onError={(e) => {
@@ -129,7 +176,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                       <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                       <span>{teacher.rating} / 5.0</span>
                     </div>
-                    <span>184 alumnos evaluados</span>
+                    <span>{teacher.studentsCount} alumnos</span>
                     <span className="font-mono font-medium text-slate-900">
                       Desde {teacher.currencySymbol} {teacher.hourlyRate.toLocaleString('es-PY')}/h
                     </span>
@@ -137,7 +184,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 text-[11px] text-slate-500">
                     <Video className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                    <span className="truncate">Google Meet & Zoom listos para unirse</span>
+                    <span className="truncate">
+                      {teacher.preferredPlatform === 'teams' ? 'Microsoft Teams' : teacher.preferredPlatform === 'zoom' ? 'Zoom' : 'Google Meet'} & Presencial
+                    </span>
                   </div>
                 </div>
               </div>

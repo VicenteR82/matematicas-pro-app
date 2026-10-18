@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   INITIAL_PACKAGES, 
   INITIAL_TEACHER_PROFILE, 
+  INITIAL_TEACHERS,
   INITIAL_WHATSAPP_TEMPLATES, 
   INITIAL_BOOKINGS 
 } from './data/initialData';
@@ -17,26 +18,40 @@ import { Footer } from './components/Footer';
 
 const STORAGE_KEYS = {
   TEACHER: 'math_pro_teacher_profile',
+  TEACHERS: 'math_pro_teachers_list',
   BOOKINGS: 'math_pro_bookings_list',
   TEMPLATES: 'math_pro_whatsapp_templates',
 };
 
 export default function App() {
-  // Load persistent state from localStorage with fallbacks
-  const [teacher, setTeacher] = useState<TeacherProfile>(() => {
+  // Load teachers list
+  const [teachers, setTeachers] = useState<TeacherProfile[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.TEACHER);
+      const saved = localStorage.getItem(STORAGE_KEYS.TEACHERS);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.currency === 'PYG' && parsed.name.includes('Vicente')) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed;
         }
       }
-      return INITIAL_TEACHER_PROFILE;
+      const single = localStorage.getItem(STORAGE_KEYS.TEACHER);
+      if (single) {
+        const parsedSingle = JSON.parse(single);
+        if (parsedSingle?.id) {
+          return [parsedSingle, ...INITIAL_TEACHERS.slice(1)];
+        }
+      }
+      return INITIAL_TEACHERS;
     } catch {
-      return INITIAL_TEACHER_PROFILE;
+      return INITIAL_TEACHERS;
     }
   });
+
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>(() => {
+    return teachers[0]?.id || 'teacher-1';
+  });
+
+  const currentTeacher = teachers.find(t => t.id === selectedTeacherId) || teachers[0] || INITIAL_TEACHER_PROFILE;
 
   const [bookings, setBookings] = useState<Booking[]>(() => {
     try {
@@ -67,14 +82,15 @@ export default function App() {
   const [isDeploymentGuideOpen, setIsDeploymentGuideOpen] = useState(false);
   const [selectedPackageForBooking, setSelectedPackageForBooking] = useState<ClassPackage | null>(null);
 
-  // Sync to localStorage
+  // Sync teachers to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.TEACHER, JSON.stringify(teacher));
+      localStorage.setItem(STORAGE_KEYS.TEACHERS, JSON.stringify(teachers));
+      localStorage.setItem(STORAGE_KEYS.TEACHER, JSON.stringify(currentTeacher));
     } catch (err) {
       console.error(err);
     }
-  }, [teacher]);
+  }, [teachers, currentTeacher]);
 
   useEffect(() => {
     try {
@@ -110,7 +126,29 @@ export default function App() {
   };
 
   const handleSaveTeacher = (updatedTeacher: TeacherProfile) => {
-    setTeacher(updatedTeacher);
+    setTeachers(prev => {
+      const exists = prev.some(t => t.id === updatedTeacher.id);
+      if (exists) {
+        return prev.map(t => t.id === updatedTeacher.id ? updatedTeacher : t);
+      }
+      return [...prev, updatedTeacher];
+    });
+  };
+
+  const handleAddTeacher = (newTeacher: TeacherProfile) => {
+    setTeachers(prev => [...prev, newTeacher]);
+    setSelectedTeacherId(newTeacher.id);
+  };
+
+  const handleDeleteTeacher = (teacherId: string) => {
+    setTeachers(prev => {
+      const filtered = prev.filter(t => t.id !== teacherId);
+      if (filtered.length > 0) {
+        setSelectedTeacherId(filtered[0].id);
+        return filtered;
+      }
+      return prev;
+    });
   };
 
   const handleScrollToSection = (sectionId: string) => {
@@ -182,7 +220,9 @@ export default function App() {
           <div>
             {/* Hero Section */}
             <HeroSection
-              teacher={teacher}
+              teacher={currentTeacher}
+              teachers={teachers}
+              onSelectTeacher={setSelectedTeacherId}
               onStartBooking={() => handleScrollToSection('reservar')}
               onExploreFeatures={() => handleScrollToSection('recordatorios')}
               onViewTeacherDashboard={handleOpenTeacherView}
@@ -191,7 +231,7 @@ export default function App() {
             {/* Packages & Pricing Section */}
             <PackagesSection
               packages={packages}
-              currencySymbol={teacher.currencySymbol}
+              currencySymbol={currentTeacher.currencySymbol}
               onSelectPackage={handleSelectPackage}
             />
 
@@ -201,7 +241,9 @@ export default function App() {
             {/* Multi-step Booking Wizard */}
             <BookingWizard
               packages={packages}
-              teacher={teacher}
+              teacher={currentTeacher}
+              teachers={teachers}
+              onSelectTeacher={setSelectedTeacherId}
               existingBookings={bookings}
               confirmationTemplate={confirmationTemplate}
               onBookingCreated={handleBookingCreated}
@@ -210,7 +252,11 @@ export default function App() {
           </div>
         ) : (
           <TeacherDashboard
-            teacher={teacher}
+            teacher={currentTeacher}
+            teachers={teachers}
+            onSelectTeacher={setSelectedTeacherId}
+            onAddTeacher={handleAddTeacher}
+            onDeleteTeacher={handleDeleteTeacher}
             bookings={bookings}
             templates={templates}
             onUpdateBookingStatus={handleUpdateBookingStatus}
@@ -232,7 +278,7 @@ export default function App() {
 
       {/* Footer */}
       <Footer
-        teacher={teacher}
+        teacher={currentTeacher}
         onOpenDeploymentGuide={() => setIsDeploymentGuideOpen(true)}
         onSwitchView={(view) => {
           if (view === 'teacher') handleOpenTeacherView();
