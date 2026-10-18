@@ -17,7 +17,10 @@ import {
   Trash2, 
   Plus, 
   Sparkles,
-  Users
+  Users,
+  Code,
+  Download,
+  Cloud
 } from 'lucide-react';
 import { TeacherProfile } from '../../types';
 
@@ -28,6 +31,8 @@ interface SettingsPanelProps {
   onAddTeacher?: (newTeacher: TeacherProfile) => void;
   onDeleteTeacher?: (id: string) => void;
   onSaveTeacher: (updated: TeacherProfile) => void;
+  onOpenDeploymentGuide?: () => void;
+  onOpenGoogleDriveBackup?: () => void;
 }
 
 const PRESET_AVATARS = [
@@ -44,6 +49,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onAddTeacher,
   onDeleteTeacher,
   onSaveTeacher,
+  onOpenDeploymentGuide,
+  onOpenGoogleDriveBackup,
 }) => {
   const [formData, setFormData] = useState<TeacherProfile>(teacher);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -746,6 +753,45 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 5. Zona Técnica & Respaldo (Privado para el Administrador / Docente) */}
+      {(onOpenDeploymentGuide || onOpenGoogleDriveBackup) && (
+        <div className="bg-slate-100/80 border border-slate-200 rounded-2xl p-5 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <Code className="w-4 h-4 text-indigo-600" />
+                <span>Zona Técnica & Respaldo (Solo Visible para Ti con PIN)</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Los alumnos no pueden ver esto en la página pública. Desde aquí puedes guardar una copia de seguridad directa en tu Google Drive, descargar el archivo ZIP del proyecto o revisar los comandos de Git y Railway.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {onOpenGoogleDriveBackup && (
+                <button
+                  type="button"
+                  onClick={onOpenGoogleDriveBackup}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+                >
+                  <Cloud className="w-3.5 h-3.5" />
+                  <span>Subir a Google Drive</span>
+                </button>
+              )}
+              {onOpenDeploymentGuide && (
+                <button
+                  type="button"
+                  onClick={onOpenDeploymentGuide}
+                  className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Descargar ZIP / Guía</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </form>
   );

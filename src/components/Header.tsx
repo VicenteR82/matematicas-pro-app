@@ -1,10 +1,10 @@
 import React from 'react';
-import { Calendar, UserCheck, Rocket, BookOpen } from 'lucide-react';
+import { Calendar, UserCheck, BookOpen } from 'lucide-react';
 
 interface HeaderProps {
   currentView: 'student' | 'teacher';
   onViewChange: (view: 'student' | 'teacher') => void;
-  onOpenDeploymentGuide: () => void;
+  onOpenDeploymentGuide?: () => void;
   onScrollToSection: (sectionId: string) => void;
   pendingBookingsCount: number;
 }
@@ -12,7 +12,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   currentView,
   onViewChange,
-  onOpenDeploymentGuide,
   onScrollToSection,
   pendingBookingsCount,
 }) => {
@@ -66,24 +65,10 @@ export const Header: React.FC<HeaderProps> = ({
           >
             WhatsApp & Pagos
           </button>
-          <button
-            onClick={onOpenDeploymentGuide}
-            className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 transition-colors whitespace-nowrap cursor-pointer font-semibold"
-          >
-            <Rocket className="w-4 h-4" />
-            <span>Guía Despliegue</span>
-          </button>
         </nav>
 
         {/* Zone 3: Primary Action / Mode Switch */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={onOpenDeploymentGuide}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
-            title="Descargar código en ZIP gratis"
-          >
-            <span>Descargar ZIP Gratis</span>
-          </button>
           {currentView === 'student' ? (
             <button
               onClick={() => onViewChange('teacher')}

@@ -16,7 +16,8 @@ import {
   Sparkles,
   Smartphone,
   Check,
-  X
+  X,
+  Cloud
 } from 'lucide-react';
 import { Booking, BookingStatus, TeacherProfile, WhatsAppTemplate } from '../../types';
 import { WhatsAppCenter } from './WhatsAppCenter';
@@ -35,6 +36,8 @@ interface TeacherDashboardProps {
   onUpdateTemplate: (templateId: string, content: string) => void;
   onSaveTeacher: (updated: TeacherProfile) => void;
   onAddNewManualBooking: () => void;
+  onOpenDeploymentGuide?: () => void;
+  onOpenGoogleDriveBackup?: () => void;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
@@ -49,6 +52,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   onUpdateTemplate,
   onSaveTeacher,
   onAddNewManualBooking,
+  onOpenDeploymentGuide,
+  onOpenGoogleDriveBackup,
 }) => {
   const [activeTab, setActiveTab] = useState<'bookings' | 'whatsapp' | 'settings' | 'students'>('bookings');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -149,6 +154,17 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {onOpenGoogleDriveBackup && (
+              <button
+                onClick={onOpenGoogleDriveBackup}
+                className="px-3.5 py-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                title="Subir código fuente y respaldo a Google Drive"
+              >
+                <Cloud className="w-4 h-4 text-blue-600" />
+                <span>Subir a Google Drive</span>
+              </button>
+            )}
+
             <button
               onClick={handleExportCSV}
               className="px-3.5 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -522,6 +538,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             onAddTeacher={onAddTeacher}
             onDeleteTeacher={onDeleteTeacher}
             onSaveTeacher={onSaveTeacher}
+            onOpenDeploymentGuide={onOpenDeploymentGuide}
+            onOpenGoogleDriveBackup={onOpenGoogleDriveBackup}
           />
         )}
 

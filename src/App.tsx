@@ -14,6 +14,7 @@ import { WhatsAppAutomationExplainer } from './components/WhatsAppAutomationExpl
 import { BookingWizard } from './components/BookingFlow/BookingWizard';
 import { TeacherDashboard } from './components/TeacherDashboard/TeacherDashboard';
 import { DeploymentGuideModal } from './components/DeploymentGuide/DeploymentGuideModal';
+import { GoogleDriveBackupModal } from './components/TeacherDashboard/GoogleDriveBackupModal';
 import { Footer } from './components/Footer';
 
 const STORAGE_KEYS = {
@@ -80,6 +81,7 @@ export default function App() {
   const [packages] = useState<ClassPackage[]>(INITIAL_PACKAGES);
   const [currentView, setCurrentView] = useState<'student' | 'teacher'>('student');
   const [isDeploymentGuideOpen, setIsDeploymentGuideOpen] = useState(false);
+  const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
   const [selectedPackageForBooking, setSelectedPackageForBooking] = useState<ClassPackage | null>(null);
 
   // Sync teachers to localStorage
@@ -262,6 +264,8 @@ export default function App() {
             onUpdateBookingStatus={handleUpdateBookingStatus}
             onUpdateTemplate={handleUpdateTemplate}
             onSaveTeacher={handleSaveTeacher}
+            onOpenDeploymentGuide={() => setIsDeploymentGuideOpen(true)}
+            onOpenGoogleDriveBackup={() => setIsGoogleDriveModalOpen(true)}
             onAddNewManualBooking={() => {
               setCurrentView('student');
               setTimeout(() => handleScrollToSection('reservar'), 100);
@@ -274,6 +278,13 @@ export default function App() {
       <DeploymentGuideModal
         isOpen={isDeploymentGuideOpen}
         onClose={() => setIsDeploymentGuideOpen(false)}
+        onOpenGoogleDrive={() => setIsGoogleDriveModalOpen(true)}
+      />
+
+      {/* Google Drive Direct Backup Modal */}
+      <GoogleDriveBackupModal
+        isOpen={isGoogleDriveModalOpen}
+        onClose={() => setIsGoogleDriveModalOpen(false)}
       />
 
       {/* Footer */}

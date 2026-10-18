@@ -1,16 +1,15 @@
 import React from 'react';
-import { Rocket, ShieldCheck, Heart } from 'lucide-react';
+import { ShieldCheck, Heart } from 'lucide-react';
 import { TeacherProfile } from '../types';
 
 interface FooterProps {
   teacher: TeacherProfile;
-  onOpenDeploymentGuide: () => void;
+  onOpenDeploymentGuide?: () => void;
   onSwitchView: (view: 'student' | 'teacher') => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   teacher,
-  onOpenDeploymentGuide,
   onSwitchView,
 }) => {
   return (
@@ -49,15 +48,6 @@ export const Footer: React.FC<FooterProps> = ({
                   Panel de la Profesora (Admin)
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={onOpenDeploymentGuide}
-                  className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors cursor-pointer flex items-center gap-1"
-                >
-                  <Rocket className="w-3.5 h-3.5" />
-                  <span>Guía para Desplegar en Vercel/Railway</span>
-                </button>
-              </li>
             </ul>
           </div>
 
@@ -78,7 +68,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="flex items-center gap-3">
             <span>Diseñado para educación y matemáticas</span>
             <span aria-hidden="true">·</span>
-            <span>Listo para producción en Vercel o Railway</span>
+            <span>Atención virtual y presencial</span>
           </div>
         </div>
       </div>
