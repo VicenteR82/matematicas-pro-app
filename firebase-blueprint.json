@@ -1,0 +1,113 @@
+{
+  "entities": {
+    "PlatformConfig": {
+      "title": "PlatformConfig",
+      "description": "General platform configuration, brand name, and appearance",
+      "type": "object",
+      "properties": {
+        "brandName": { "type": "string", "maxLength": 100 },
+        "brandSubtitle": { "type": "string", "maxLength": 200 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["brandName"]
+    },
+    "TeacherProfile": {
+      "title": "TeacherProfile",
+      "description": "Registered math teacher profile, contact and availability settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 150 },
+        "title": { "type": "string", "maxLength": 200 },
+        "degree": { "type": "string", "maxLength": 200 },
+        "bio": { "type": "string", "maxLength": 2000 },
+        "phoneWhatsApp": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 150 },
+        "hourlyRate": { "type": "number" },
+        "currency": { "type": "string", "maxLength": 10 },
+        "currencySymbol": { "type": "string", "maxLength": 10 },
+        "avatarUrl": { "type": "string", "maxLength": 1000 },
+        "meetLinkDefault": { "type": "string", "maxLength": 1000 },
+        "preferredPlatform": { "type": "string", "maxLength": 50 },
+        "inPersonAddress": { "type": "string", "maxLength": 500 },
+        "allowOnline": { "type": "boolean" },
+        "allowInPerson": { "type": "boolean" },
+        "weeklySchedule": { "type": "object" }
+      },
+      "required": ["id", "name", "hourlyRate", "currency", "phoneWhatsApp", "email"]
+    },
+    "ClassPackage": {
+      "title": "ClassPackage",
+      "description": "Class packages and pricing plans customizable by the teacher",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 150 },
+        "durationMinutes": { "type": "number" },
+        "totalClasses": { "type": "number" },
+        "price": { "type": "number" },
+        "description": { "type": "string", "maxLength": 1000 },
+        "discountPercentage": { "type": "number" },
+        "popular": { "type": "boolean" }
+      },
+      "required": ["id", "name", "price", "durationMinutes", "totalClasses"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Student reservations and appointments across devices",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "bookingCode": { "type": "string", "maxLength": 30 },
+        "teacherId": { "type": "string", "maxLength": 100 },
+        "packageId": { "type": "string", "maxLength": 100 },
+        "studentName": { "type": "string", "maxLength": 150 },
+        "studentEmail": { "type": "string", "maxLength": 150 },
+        "studentPhone": { "type": "string", "maxLength": 50 },
+        "date": { "type": "string", "maxLength": 30 },
+        "timeSlot": { "type": "string", "maxLength": 50 },
+        "subject": { "type": "string", "maxLength": 200 },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "paid", "completed", "cancelled"] },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "maxLength": 10 },
+        "paymentMethod": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "bookingCode", "studentName", "studentEmail", "date", "timeSlot", "subject", "amount", "status"]
+    },
+    "WhatsAppTemplate": {
+      "title": "WhatsAppTemplate",
+      "description": "Notification templates for student reminders and confirmation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 150 },
+        "triggerDescription": { "type": "string", "maxLength": 500 },
+        "content": { "type": "string", "maxLength": 3000 }
+      },
+      "required": ["id", "title", "content"]
+    }
+  },
+  "firestore": {
+    "/platform_config/{configId}": {
+      "schema": "PlatformConfig",
+      "description": "Stores general platform branding and visual title"
+    },
+    "/teachers/{teacherId}": {
+      "schema": "TeacherProfile",
+      "description": "Stores teacher profiles, rates, availability and details"
+    },
+    "/packages/{packageId}": {
+      "schema": "ClassPackage",
+      "description": "Stores class packages and editable prices"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Stores student bookings and reservations"
+    },
+    "/templates/{templateId}": {
+      "schema": "WhatsAppTemplate",
+      "description": "Stores WhatsApp reminder templates"
+    }
+  }
+}

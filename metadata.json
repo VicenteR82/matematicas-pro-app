@@ -1,0 +1,6 @@
+{
+  "name": "Matemáticas Pro - Gestión de Reservas, Pagos y WhatsApp",
+  "description": "Aplicación completa para gestionar reservas con una profesora de matemáticas, recordatorios automáticos por WhatsApp y pasarelas de pago integradas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
